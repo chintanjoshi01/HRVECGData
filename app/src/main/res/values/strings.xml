@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">HRVECGData</string>
+    <string name="request_permission">Request Permission</string>
+</resources>
