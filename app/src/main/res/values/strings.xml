@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HRVECGData</string>
+    <string name="request_permission">Request Permission</string>
+    <string name="no_old">No Device Added</string>
+    <string name="title_patient_list">Device List</string>
+    <string name="add_patient">Add Device</string>
+    <string name="patientId_label">Enter Device ID</string>
+    <string name="name_label">Enter Name</string>
+</resources>
