@@ -2,10 +2,60 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e5c59c5026829d51ef4e774d697498f3",
+    "identityHash": "610d6aa416311512113aa9d434d74b82",
     "entities": [
       {
         "tableName": "DataTable",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deviceId` TEXT, `patientName` TEXT, `ecg` TEXT, `hr` TEXT, `timestamp` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceId",
+            "columnName": "deviceId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "patientName",
+            "columnName": "patientName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ecg",
+            "columnName": "ecg",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "hr",
+            "columnName": "hr",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "DataTableUpdate",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deviceId` TEXT, `patientName` TEXT, `ecg` TEXT, `hr` TEXT, `timestamp` TEXT)",
         "fields": [
           {
@@ -58,7 +108,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e5c59c5026829d51ef4e774d697498f3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '610d6aa416311512113aa9d434d74b82')"
     ]
   }
 }

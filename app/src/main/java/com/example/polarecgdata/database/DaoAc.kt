@@ -13,6 +13,9 @@ interface DaoAc {
     @Insert
      fun insert(task: DataModel): Long
 
+    @Insert
+    fun insert1(task: DataModelUpdateData): Long
+
     @Update
      fun update(task: DataModel): Int
 
@@ -20,11 +23,11 @@ interface DaoAc {
      fun delete(task: DataModel): Int
 
 
-    /*@Query("SELECT * FROM Patient ORDER BY id ASC")
+    @Query("SELECT * FROM DataTable ORDER BY id ASC")
     fun getAllPatient(): LiveData<List<DataModel>>
 
 
-    @Query("SELECT * FROM Patient WHERE id LIKE :idd")
-    fun getPatientbyId(idd: Long): DataModel*/
+    @Query("SELECT * FROM DataTable WHERE id LIKE :idd")
+    fun getPatientbyId(idd: Long): DataModel
 
 }

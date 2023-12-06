@@ -9,11 +9,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 
 @Database(
-    entities = [DataModel::class],
+    entities = [DataModel::class, DataModelUpdateData::class],
     version = 1,
     exportSchema = true,
 
-)
+    )
 abstract class DatabaseHelper : RoomDatabase() {
     abstract val dao: DaoAc?
 
@@ -31,6 +31,7 @@ abstract class DatabaseHelper : RoomDatabase() {
 
             return instance
         }
+
         val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE content RENAME COLUMN remarks TO symptoms")

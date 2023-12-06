@@ -10,7 +10,7 @@ class HomeRepository(context: Context) {
 
     val dao = DatabaseHelper.getInstance(context)?.dao
 
-//    val allTasks: LiveData<List<DataModel>> = dao?.getAllPatient()!!
+    val allTasks: LiveData<List<DataModel>> = dao?.getAllPatient()!!
 
 
     fun insert(task: DataModel) {

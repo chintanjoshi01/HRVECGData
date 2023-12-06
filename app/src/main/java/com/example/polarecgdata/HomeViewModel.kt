@@ -7,7 +7,7 @@ import com.example.proctocam.Database.DataModel
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
-//    val allTasks: LiveData<List<DataModel>> = repository.allTasks
+    val allTasks: LiveData<List<DataModel>> = repository.allTasks
 
     fun insert(task: DataModel) {
         viewModelScope.launch {
