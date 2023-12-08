@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repository: HomeRepository) : ViewModel() {
     val allTasks: LiveData<List<DataModel>> = repository.allTasks
+//    fun getDataWithId(id: String):LiveData<List<DataModel>> = repository.getDataWithId(id)
 
     fun insert(task: DataModel) {
         viewModelScope.launch {

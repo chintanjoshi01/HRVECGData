@@ -26,8 +26,8 @@
       ]
     },
     {
-      "minApi": 2147483647,
-      "maxApi": 31,
+      "minApi": 31,
+      "maxApi": 2147483647,
       "baselineProfiles": [
         "baselineProfiles/0/app-release.dm"
       ]

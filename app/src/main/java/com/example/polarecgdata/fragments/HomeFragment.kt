@@ -28,18 +28,9 @@ import com.polar.sdk.api.PolarBleApiDefaultImpl
 class HomeFragment : Fragment() {
 
     private lateinit var binding: FragmentHomeBinding
-    lateinit var viewModel: HomeViewModel
-    private var selectedCount = 0
-
+    private lateinit var viewModel: HomeViewModel
     private lateinit var adapter: MainAdepter
-    private lateinit var actionModeCallback: ActionMode.Callback
     private lateinit var api: PolarBleApi
-
-    var actionMode: androidx.appcompat.view.ActionMode? = null
-
-
-    //    val menuHost: MenuHost = requireActivity()
-    lateinit var menuProvider: MenuProvider
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val factory = activity?.let { HomeRepository(it.applicationContext) }
@@ -70,7 +61,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initAppBar()
         initRv()
         fabClick()
     }
@@ -123,10 +113,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun fabClick() {
-
         binding.extendedFab.setOnClickListener {
             context?.let { it1 -> showAddDialog(it1) }
-
         }
     }
 
@@ -159,11 +147,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-
-    private fun initAppBar() {
-
-
-    }
 }
 
 

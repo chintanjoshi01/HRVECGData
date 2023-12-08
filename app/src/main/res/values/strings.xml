@@ -6,4 +6,5 @@
     <string name="add_patient">Add Device</string>
     <string name="patientId_label">Enter Device ID</string>
     <string name="name_label">Enter Name</string>
+    <string name="csv_file_generated_text">CSV file generated!</string>
 </resources>

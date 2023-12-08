@@ -30,4 +30,6 @@ interface DaoAc {
     @Query("SELECT * FROM DataTable WHERE id LIKE :idd")
     fun getPatientbyId(idd: Long): DataModel
 
+    @Query("SELECT * FROM DataTableUpdate WHERE deviceId LIKE :deviceId LIMIT :offset, :limit")
+    fun getDataWithDeviceId(deviceId: String,offset: Int, limit: Int): List<DataModelUpdateData>
 }

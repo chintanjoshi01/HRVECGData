@@ -81,6 +81,9 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     implementation("androidx.room:room-rxjava2:$room_version")
     implementation("androidx.room:room-rxjava3:$room_version")
-
+    //For CSV
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:0.9.0")
+    //Worker
+    implementation("androidx.work:work-runtime:2.8.1")
 
 }

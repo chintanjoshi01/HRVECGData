@@ -11,6 +11,8 @@ class HomeRepository(context: Context) {
     val dao = DatabaseHelper.getInstance(context)?.dao
 
     val allTasks: LiveData<List<DataModel>> = dao?.getAllPatient()!!
+//    fun getDataWithId(id : String): LiveData<List<DataModel>> = dao?.getDataWithDeviceId()!!
+
 
 
     fun insert(task: DataModel) {
@@ -24,5 +26,6 @@ class HomeRepository(context: Context) {
     fun delete(task: DataModel) {
         dao?.delete(task)
     }
+
 
 }

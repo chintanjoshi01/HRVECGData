@@ -2,9 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="10dp"
     android:background="@drawable/dialog_background"
     android:orientation="vertical"
-    android:layout_margin="10dp"
     android:padding="10dp">
 
     <LinearLayout
@@ -54,7 +54,7 @@
                         android:layout_gravity="center"
                         android:layout_toEndOf="@id/tvStatus"
                         android:layout_weight="1"
-                        android:text="Status" />
+                        android:text=" " />
 
 
                 </LinearLayout>
@@ -85,7 +85,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Status" />
+                        android:text=" " />
 
                 </LinearLayout>
 
@@ -117,7 +117,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
 
-                        android:text="Status" />
+                        android:text=" " />
 
                 </LinearLayout>
 
@@ -145,8 +145,10 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/hrEcgLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -178,7 +180,7 @@
                 android:layout_gravity="center"
                 android:layout_toEndOf="@id/tvStatus"
                 android:layout_weight="1"
-                android:text="Status" />
+                android:text=" " />
 
 
         </LinearLayout>
@@ -210,7 +212,80 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Status" />
+                android:text=" " />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/hrBFLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/layout6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvBattery"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Battery"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:text=":"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvBatteryVal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_toEndOf="@id/tvStatus"
+                android:layout_weight="1"
+                android:text=" " />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout7"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.6"
+                android:text="Firmware"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:text=":"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFamVal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text=" " />
 
         </LinearLayout>
 

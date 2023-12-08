@@ -5,14 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.polarecgdata.HomeRepository
+import com.example.polarecgdata.HomeViewModel
+import com.example.polarecgdata.adepters.ReportAdepter
 import com.example.polarecgdata.databinding.FragmentReportBinding
 
 
 class ReportFragment : Fragment() {
 
     private lateinit var binding: FragmentReportBinding
+    private lateinit var adapter: ReportAdepter
 
-    //    lateinit var viewModel: ReportViewModel
+    lateinit var viewModel: HomeViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -28,44 +35,37 @@ class ReportFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        initRv()
+        initRv()
     }
 
 
-    /* override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-         inflater.inflate(R.menu.report_menu, menu)
-         super.onCreateOptionsMenu(menu, inflater)
-     }*/
+    private fun initRv() {
+        val factory = activity?.let { HomeRepository(it.applicationContext) }
+            ?.let { MyViewModelFactory(it) }
+        viewModel = factory?.let { ViewModelProvider(this, it) }?.get(HomeViewModel::class.java)!!
+        activity.let {
+            if (it != null) {
+                viewModel.allTasks.observe(it) { tasks ->
+                    if (tasks.isEmpty()) {
+                        binding.rvPatientList.visibility = View.GONE
+                        binding.noDataLayout.visibility = View.VISIBLE
+                    } else {
+                        binding.rvPatientList.visibility = View.VISIBLE
+                        binding.noDataLayout.visibility = View.GONE
+                        adapter =
+                            ReportAdepter(requireContext(), tasks.reversed())
+                        binding.rvPatientList.layoutManager = LinearLayoutManager(requireContext())
+                        binding.rvPatientList.adapter = adapter
+                    }
+                }
+            }
+        }
+    }
 
-    /*  private fun initRv() {
-
-          viewModel = ViewModelProvider(this)[ReportViewModel::class.java]
-          activity.let {
-              if (it != null) {
-                  viewModel.getPdfFilesLiveData(requireContext()).observe(it) { tasks ->
-                      if (tasks.isEmpty()) {
-                          binding.rvPatientList.visibility = View.GONE
-                          binding.noDataLayout.visibility = View.VISIBLE
-                      } else {
-                          binding.rvPatientList.visibility = View.VISIBLE
-                          binding.noDataLayout.visibility = View.GONE
-                          for (i in tasks.indices) {
-                              Log.e("dhkdhas", "task value --> ${tasks[i]}")
-                          }
-                          val adapter =
-                              ReportsAdepter(childFragmentManager, tasks.reversed()) { patient ->
-                                  val intent = Intent(activity, PDFViewActivity::class.java)
-                                  intent.putExtra(KEY_PDF_FILE_PATH, patient.absolutePath)
-                                  activity?.startActivity(intent)
-                              }
-                          binding.rvPatientList.layoutManager = LinearLayoutManager(requireContext())
-                          binding.rvPatientList.adapter = adapter
-                      }
-                  }
-              }
-          }
-      }*/
-
+    class MyViewModelFactory(val repository: HomeRepository) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return modelClass.getConstructor(HomeRepository::class.java).newInstance(repository)
+        }
+    }
 
 }
