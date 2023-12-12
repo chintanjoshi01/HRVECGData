@@ -2,48 +2,37 @@ package com.example.polarecgdata.adepters
 
 import android.content.Context
 import android.text.TextUtils
-import android.util.Log
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.polarecgdata.OnItemClick
-import com.example.polarecgdata.PolarBleApiSingleton
 import com.example.polarecgdata.databinding.DataItemBinding
-import com.example.polarecgdata.timestampToDateTime
+import com.example.polarecgdata.work.DeviceLiveUpdateWorker
 import com.example.proctocam.Database.DataModel
-import com.example.proctocam.Database.DataModelUpdateData
 import com.example.proctocam.Database.DatabaseHelper
 import com.polar.sdk.api.PolarBleApi
-import com.polar.sdk.api.errors.PolarInvalidArgument
-import com.polar.sdk.api.model.PolarDeviceInfo
-import com.polar.sdk.api.model.PolarEcgData
-import com.polar.sdk.api.model.PolarHrData
-import com.polar.sdk.api.model.PolarSensorSetting
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.Disposable
-import java.util.UUID
+import java.util.concurrent.Executors
 
 class MainAdepter(
     private val context: Context,
-    private val dataList: MutableList<DataModel>,
     private val api: PolarBleApi,
     private var selectedItems: SparseBooleanArray = SparseBooleanArray()
 ) : RecyclerView.Adapter<MainAdepter.MyViewHolder>() {
-
     private lateinit var binding: DataItemBinding
-    private var ecgDisposable: Disposable? = null
-    private var hrDisposable: Disposable? = null
     private lateinit var database: DatabaseHelper
-    lateinit var rrText: String;
     private var selectedIndex = -1
     private lateinit var itemClick: OnItemClick
-
+     var dataList: MutableList<DataModel> = mutableListOf()
     fun setItemClick(itemClick: OnItemClick) {
         this.itemClick = itemClick
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainAdepter.MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -60,20 +49,20 @@ class MainAdepter(
         return dataList.size
     }
 
-
-    internal class ViewHolder(itemView: DataItemBinding) :
-        RecyclerView.ViewHolder(itemView.getRoot()) {
-        var bi: DataItemBinding
-
-        init {
-            bi = itemView
-        }
+    fun updateItemAtPosition(position: Int, newItem: DataModel) {
+        dataList[position] = newItem
+        notifyItemChanged(position)
     }
 
-    inner class MyViewHolder(itemView: DataItemBinding) : RecyclerView.ViewHolder(itemView.root),
-        com.polar.sdk.api.PolarBleApiCallbackProvider {
+    fun updateItemAtPosition1(newItem:  MutableList<DataModel>) {
+        dataList = newItem
+        notifyDataSetChanged()
+    }
+
+
+    inner class MyViewHolder(itemView: DataItemBinding) : RecyclerView.ViewHolder(itemView.root)  {
         private lateinit var task1: DataModel
-        var itemBinding: DataItemBinding
+        private var itemBinding: DataItemBinding
 
         init {
             itemBinding = itemView
@@ -83,23 +72,25 @@ class MainAdepter(
             task1 = task
             itemBinding.tvIdVal.text = task.deviceId
             itemBinding.tvNameVal.text = task.patientName
-            lateinit var api: PolarBleApi
-            itemBinding.btnConnect.setOnClickListener {
-                task.deviceId?.let { it1 ->
-                    try {
-                        if (TextUtils.equals("Connect", itemBinding.btnConnect.text)) {
-                            api = PolarBleApiSingleton.getInstance(context).getPolarBleApi(
-                                this,
-                                it1
-                            )
-                        } else {
-                            api.disconnectFromDevice(it1)
-                        }
+            itemBinding.tvEcgVal.text = task.ecg
+            itemBinding.tvBatteryVal.text = task.battery
+            itemBinding.tvFamVal.text = task.firmware
+            itemBinding.tvHrVal.text = task.hr
+            itemBinding.tvStatusVal.text = task.status
 
-                    } catch (a: PolarInvalidArgument) {
-                        a.printStackTrace()
-                        itemBinding.tvStatusVal.text = "Error"
-                    }
+            itemBinding.btnConnect.setOnClickListener {
+                if (TextUtils.equals("Connect", itemBinding.btnConnect.text)) {
+                  /*  val workManager = WorkManager.getInstance(context)
+                    val data = Data.Builder()
+                        .putLong("FIRST_KEY", task.id)
+                        .build()
+                    val pdfGenerationRequest = OneTimeWorkRequest.Builder(DeviceLiveUpdateWorker::class.java)
+                        .setInputData(data)
+                        .build()
+                    workManager.enqueue(pdfGenerationRequest)*/
+                    itemClick.onItemClick(it, dataList[layoutPosition], layoutPosition)
+                } else {
+//                        PolarBleApiSingleton.getInstance(context, task, itemBinding, this@MainAdepter,layoutPosition).disconnect()
                 }
             }
             itemView.setOnClickListener { view ->
@@ -112,196 +103,10 @@ class MainAdepter(
                     true
                 }
             }
-
             toggleIcon(itemBinding, position)
         }
 
-        override fun batteryLevelReceived(identifier: String, level: Int) {
-            Log.d("MyApp", "BATTERY LEVEL: $level")
-            Log.d("MyApp", "Battery level $identifier $level%")
-            val batteryLevelText = "Battery level: $level%"
-            itemBinding.tvBatteryVal.text = batteryLevelText
-        }
-
-        override fun blePowerStateChanged(powered: Boolean) {
-            Log.d("MyApp", "BLE power: $powered")
-        }
-
-        override fun bleSdkFeatureReady(
-            identifier: String,
-            feature: PolarBleApi.PolarBleSdkFeature
-        ) {
-            when (feature) {
-                PolarBleApi.PolarBleSdkFeature.FEATURE_HR -> {
-                    Log.d("MyApp", "HR ready")
-                    task1.deviceId?.let {
-                        task1.patientName?.let { it1 ->
-                            streamHR(
-                                it,
-                                it1
-                            )
-                        }
-                    }
-                    //                        binding.tvShowData1.text = "HR : $feature"
-                }
-
-                PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING -> {
-                    Log.d("MyApp", "FEATURE_POLAR_ONLINE_STREAMING ready")
-                    task1.deviceId?.let {
-                        task1.patientName?.let { it1 -> streamECG(it, it1) }
-                    }
-
-                }
-
-                else -> {}
-            }
-
-            Log.d("MyApp", "Polar BLE SDK feature $feature is ready")
-        }
-
-        override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d("MyApp", "CONNECTED: ${polarDeviceInfo.deviceId}")
-            itemBinding.tvStatusVal.text = "Connected"
-            itemBinding.btnConnect.text = "Disconnect"
-        }
-
-        override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d("MyApp", "CONNECTING: ${polarDeviceInfo.deviceId}")
-            itemBinding.tvStatusVal.text = "Connecting"
-        }
-
-        override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
-            Log.d("MyApp", "DISCONNECTED: ${polarDeviceInfo.deviceId}")
-            itemBinding.tvStatusVal.text = "Disconnected"
-        }
-
-        override fun disInformationReceived(identifier: String, uuid: UUID, value: String) {
-            Log.d("MyApp", "DIS INFO uuid: $uuid value: $value")
-            if (uuid == UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb")) {
-                val msg = "Firmware: " + value.trim { it <= ' ' }
-                Log.d("MyApp", "Firmware: " + identifier + " " + value.trim { it <= ' ' })
-                itemBinding.tvFamVal.text = value.trim { it <= ' ' }
-            }
-        }
-
-        override fun hrFeatureReady(identifier: String) {
-
-        }
-
-        override fun hrNotificationReceived(identifier: String, data: PolarHrData.PolarHrSample) {
-
-        }
-
-        override fun polarFtpFeatureReady(identifier: String) {
-
-        }
-
-        override fun sdkModeFeatureAvailable(identifier: String) {
-
-        }
-
-        override fun streamingFeaturesReady(
-            identifier: String,
-            features: Set<PolarBleApi.PolarDeviceDataType>
-        ) {
-
-        }
-
-
     }
-
-    fun streamHR(id: String, name: String) {
-        val isDisposed = hrDisposable?.isDisposed ?: true
-        if (isDisposed) {
-            hrDisposable = api.startHrStreaming(id)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { hrData: PolarHrData ->
-                        for (sample in hrData.samples) {
-                            Log.d("MyApp", "HR " + sample.hr)
-                            if (sample.rrsMs.isNotEmpty()) {
-                                rrText = "(${sample.rrsMs.joinToString(separator = "ms, ")}ms)"
-//                                binding.tvHrVal.text = rrText
-                            }
-                            binding.tvHrVal.text = sample.hr.toString()
-                            database.dao?.insert1(
-                                DataModelUpdateData(
-                                    id,
-                                    name,
-                                    binding.tvEcgVal.text.toString(),
-                                    sample.hr.toString(),
-                                    rrText,
-                                    ""
-                                )
-                            )
-
-                        }
-                    },
-                    { error: Throwable ->
-                        Log.e("MyApp", "HR stream failed. Reason $error")
-                        hrDisposable = null
-                    },
-                    {
-
-                        Log.d("MyApp", "HR stream complete")
-                    }
-                )
-        } else {
-            // NOTE stops streaming if it is "running"
-            hrDisposable?.dispose()
-            hrDisposable = null
-        }
-    }
-
-    fun streamECG(id: String, name: String) {
-        val isDisposed = ecgDisposable?.isDisposed ?: true
-        if (isDisposed) {
-            ecgDisposable = api.requestStreamSettings(id, PolarBleApi.PolarDeviceDataType.ECG)
-                .toFlowable()
-                .flatMap { sensorSetting: PolarSensorSetting ->
-                    api.startEcgStreaming(
-                        id,
-                        sensorSetting.maxSettings()
-                    )
-                }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { polarEcgData: PolarEcgData ->
-                        Log.d("MyApp", "ecg update")
-                        for (data in polarEcgData.samples) {
-                            binding.tvEcgVal.text =
-                                "${((data.voltage.toFloat() / 1000.0).toFloat())}"
-                            database.dao?.insert1(
-                                DataModelUpdateData(
-                                    id,
-                                    name,
-                                    "${((data.voltage.toFloat() / 1000.0).toFloat())}",
-                                    binding.tvHR.text.toString(),
-                                    rrText,
-                                    timestampToDateTime(data.timeStamp)
-                                )
-                            )
-                        }
-
-                    },
-                    { error: Throwable ->
-                        Log.e("MyApp", "Ecg stream failed $error")
-                        binding.tvEcgVal.text = "Ecg stream failed $error"
-                        ecgDisposable = null
-                    },
-                    {
-
-
-                        Log.d("MyApp", "Ecg stream complete")
-                    }
-                )
-        } else {
-            // NOTE stops streaming if it is "running"
-            ecgDisposable?.dispose()
-            ecgDisposable = null
-        }
-    }
-
 
     private fun toggleIcon(bi: DataItemBinding, position: Int) {
         if (selectedItems[position, false]) {
@@ -322,10 +127,13 @@ class MainAdepter(
 
 
     fun removeItems(position: Int) {
-        database.dao?.delete(dataList[position])
-        dataList.removeAt(position)
-
-        selectedIndex = -1
+        val executor = Executors.newSingleThreadExecutor()
+        executor.execute {
+            database.dao?.delete(dataList[position])
+            dataList.removeAt(position)
+            selectedIndex = -1
+            executor.shutdown()
+        }
 
     }
 
@@ -334,7 +142,6 @@ class MainAdepter(
         selectedItems.clear()
         notifyDataSetChanged()
     }
-
 
     fun toggleSelection(position: Int) {
         selectedIndex = position

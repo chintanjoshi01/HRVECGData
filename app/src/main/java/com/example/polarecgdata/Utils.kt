@@ -8,23 +8,34 @@ import android.view.View
 import android.view.WindowManager
 import com.example.proctocam.Database.DataModel
 import java.io.File
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 
-fun timestampToDateTime(timestamp: Long): String {
-    return try {
-        val timestampMillis: Long = timestamp / 1000
-        val instant = Instant.ofEpochMilli(timestampMillis)
-        val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-        val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
-        dateTime.format(dateFormat)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        "Error converting timestamp to date"
-    }
+fun timestampToDateTime(millis: Long): String {
+    val hours = millis / (1000 * 60 * 60) % 24
+    val minutes = millis / (1000 * 60) % 60
+    val seconds = millis / 1000 % 60
+    val milliseconds = millis % 1000
+    return String.format(
+        "%02d:%02d:%02d:%02d:%02d:%02d",
+        hours,
+        minutes,
+        seconds,
+        milliseconds / 100,
+        milliseconds % 100 / 10,
+        milliseconds % 10
+    )
+}
+
+fun getCurrentLocalDateTimeWithMillis(): String {
+    val currentTimeMillis = System.currentTimeMillis()
+    val calendar = Calendar.getInstance(TimeZone.getDefault())
+    calendar.timeInMillis = currentTimeMillis
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+    return sdf.format(calendar.time)
 }
 
 fun createAppDirectoryInDoc(context: Context): File? {
@@ -45,8 +56,6 @@ fun createAppDirectoryInDoc(context: Context): File? {
 fun toggleStatusBarColor(activity: Activity) {
     val window = activity.window
     window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-//    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-//    window.statusBarColor = activity.resources.getColor(androidx.appcompat.R.attr.colorPrimary)
 }
 
 interface ActionCallbackclick {
@@ -58,5 +67,9 @@ interface ActionCallbackclick {
 interface OnItemClick {
     fun onItemClick(view: View?, inbox: DataModel?, position: Int)
     fun onLongPress(view: View?, inbox: DataModel?, position: Int)
+}
+interface onAPICallBack{
+    fun connect()
+    fun disconnect()
 }
 

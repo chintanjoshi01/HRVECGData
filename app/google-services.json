@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868033234100",
+    "project_id": "hrvecgdata",
+    "storage_bucket": "hrvecgdata.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868033234100:android:a429c3d6dcd327e0d543e1",
+        "android_client_info": {
+          "package_name": "com.example.polarecgdata"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbzT5yG6sZ9f1MCXOHGT0rnRRXUZ-iWu8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

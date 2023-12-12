@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     kotlin("kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 
 
 }
@@ -56,6 +58,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,5 +89,6 @@ dependencies {
     implementation("com.github.doyaaaaaken:kotlin-csv-jvm:0.9.0")
     //Worker
     implementation("androidx.work:work-runtime:2.8.1")
+    implementation("androidx.work:work-testing:2.8.1")
 
 }

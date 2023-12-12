@@ -5,7 +5,9 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
 interface DaoAc {
@@ -32,4 +34,7 @@ interface DaoAc {
 
     @Query("SELECT * FROM DataTableUpdate WHERE deviceId LIKE :deviceId LIMIT :offset, :limit")
     fun getDataWithDeviceId(deviceId: String,offset: Int, limit: Int): List<DataModelUpdateData>
+
+    @RawQuery(observedEntities = [DataModel::class])
+    fun updateData(supportSQLiteQuery: SupportSQLiteQuery?): DataModel?
 }

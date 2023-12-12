@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.polarecgdata.CsvExportWorker
+import com.example.polarecgdata.work.CsvExportWorker
 import com.example.polarecgdata.databinding.DataItemBinding
 import com.example.proctocam.Database.DataModel
 import com.example.proctocam.Database.DatabaseHelper
@@ -46,6 +46,7 @@ class ReportAdepter(
             binding.layout1.visibility = View.GONE
             binding.hrEcgLayout.visibility = View.GONE
             binding.hrBFLayout.visibility = View.GONE
+            binding.hrTimeLayout.visibility = View.GONE
             binding.btnConnect.text = "Generate CSV"
             binding.btnConnect.setOnClickListener {
                 CsvExportWorker.deviceIddd = task.deviceId.toString()

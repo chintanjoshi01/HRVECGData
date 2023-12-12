@@ -16,6 +16,10 @@ data class DataModel(
     var ecg: String?,
     var hr: String?,
     var timestamp: String?,
+    var battery : String?,
+    var firmware : String?,
+    var status : String?,
+
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readLong(),
@@ -24,6 +28,9 @@ data class DataModel(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString()
     ) {
     }
 
@@ -34,7 +41,10 @@ data class DataModel(
         ecg: String,
         hr: String,
         timeStamp: String,
-    ) : this(0, deviceID, name, ecg, hr, timeStamp)
+        battery: String,
+        firmware: String,
+        status: String,
+    ) : this(0, deviceID, name, ecg, hr, timeStamp,battery,firmware, status)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(id)
@@ -43,6 +53,9 @@ data class DataModel(
         parcel.writeString(ecg)
         parcel.writeString(hr)
         parcel.writeString(timestamp)
+        parcel.writeString(battery)
+        parcel.writeString(firmware)
+        parcel.writeString(status)
     }
 
     override fun describeContents(): Int {

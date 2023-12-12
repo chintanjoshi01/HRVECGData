@@ -11,9 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [DataModel::class, DataModelUpdateData::class],
-    version = 2,
+    version = 4,
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 3, to = 4)
     ],
     exportSchema = true,
 
@@ -30,7 +30,7 @@ abstract class DatabaseHelper : RoomDatabase() {
                 instance = databaseBuilder(
                     context!!,
                     DatabaseHelper::class.java, "database"
-                ).allowMainThreadQueries().build()
+                ).build()
             }
 
             return instance

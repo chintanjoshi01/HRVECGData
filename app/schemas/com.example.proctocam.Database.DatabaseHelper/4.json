@@ -1,0 +1,144 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "895aa24926334627744bf2474d91c38c",
+    "entities": [
+      {
+        "tableName": "DataTable",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deviceId` TEXT, `patientName` TEXT, `ecg` TEXT, `hr` TEXT, `timestamp` TEXT, `battery` TEXT, `firmware` TEXT, `status` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceId",
+            "columnName": "deviceId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "patientName",
+            "columnName": "patientName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ecg",
+            "columnName": "ecg",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "hr",
+            "columnName": "hr",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "battery",
+            "columnName": "battery",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firmware",
+            "columnName": "firmware",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "DataTableUpdate",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `deviceId` TEXT, `patientName` TEXT, `ecg` TEXT, `hr` TEXT, `rr` TEXT, `timestamp` TEXT, `timestamp2` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceId",
+            "columnName": "deviceId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "patientName",
+            "columnName": "patientName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ecg",
+            "columnName": "ecg",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "hr",
+            "columnName": "hr",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rr",
+            "columnName": "rr",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "timestamp2",
+            "columnName": "timestamp2",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '895aa24926334627744bf2474d91c38c')"
+    ]
+  }
+}

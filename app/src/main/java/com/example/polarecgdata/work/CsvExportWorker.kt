@@ -1,10 +1,11 @@
-package com.example.polarecgdata
+package com.example.polarecgdata.work
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.polarecgdata.createAppDirectoryInDoc
 import com.example.proctocam.Database.DataModelUpdateData
 import com.example.proctocam.Database.DatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,6 @@ class CsvExportWorker(
     override fun doWork(): Result {
         return try {
             val database = DatabaseHelper.getInstance(context)
-
             runBlocking {
                 if (database != null) {
                     exportDataToCsv(applicationContext, database)
@@ -47,19 +47,19 @@ class CsvExportWorker(
     ) {
         val dao = database.dao
 
-        val csvFileName = "${deviceIddd}_exported_data.csv"
+        val csvFileName = "${deviceIddd}_exported_data_${System.currentTimeMillis()}.csv"
         val csvFile = File(createAppDirectoryInDoc(context), csvFileName)
 
         try {
             csvFile.bufferedWriter().use { writer ->
-                writer.appendLine("Id,Device ID,Name,HR , ECG, Time")
+                writer.appendLine("Id,Device ID,Name,HR ,RR, ECG, Time, Time2")
                 var offset = 0
                 var dataChunk: List<DataModelUpdateData>
                 do {
                     Log.d("jfsljfjsd", "Device ID: $deviceIddd")
                     dataChunk = dao!!.getDataWithDeviceId(deviceIddd, offset, batchSize)
                     dataChunk.forEach { entity ->
-                        writer.appendLine("${entity.id},${entity.deviceId},${entity.patientName},${entity.hr},${entity.ecg},${entity.timestamp}")
+                        writer.appendLine("${entity.id},${entity.deviceId},${entity.patientName},${entity.hr},${entity.rr},${entity.ecg},${entity.timestamp},${entity.timestamp2}")
                     }
                     offset += batchSize
                 } while (dataChunk.isNotEmpty())
