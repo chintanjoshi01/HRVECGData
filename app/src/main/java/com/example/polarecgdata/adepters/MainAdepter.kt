@@ -1,13 +1,15 @@
 package com.example.polarecgdata.adepters
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
 import android.util.Log
+import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.example.polarecgdata.OnItemClick
 import com.example.polarecgdata.PolarBleApiSingleton
 import com.example.polarecgdata.databinding.DataItemBinding
 import com.example.polarecgdata.timestampToDateTime
@@ -26,19 +28,28 @@ import java.util.UUID
 
 class MainAdepter(
     private val context: Context,
-    private val dataList: List<DataModel>,
-    private val api: PolarBleApi
+    private val dataList: MutableList<DataModel>,
+    private val api: PolarBleApi,
+    private var selectedItems: SparseBooleanArray = SparseBooleanArray()
 ) : RecyclerView.Adapter<MainAdepter.MyViewHolder>() {
 
     private lateinit var binding: DataItemBinding
     private var ecgDisposable: Disposable? = null
     private var hrDisposable: Disposable? = null
     private lateinit var database: DatabaseHelper
+    lateinit var rrText: String;
+    private var selectedIndex = -1
+    private lateinit var itemClick: OnItemClick
+
+    fun setItemClick(itemClick: OnItemClick) {
+        this.itemClick = itemClick
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainAdepter.MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         binding = DataItemBinding.inflate(inflater, parent, false)
         database = DatabaseHelper.getInstance(context)!!
-        return MyViewHolder(binding.root)
+        return MyViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: MainAdepter.MyViewHolder, position: Int) {
@@ -49,24 +60,34 @@ class MainAdepter(
         return dataList.size
     }
 
-    override fun getItemId(position: Int): Long {
-        return super.getItemId(position)
+
+    internal class ViewHolder(itemView: DataItemBinding) :
+        RecyclerView.ViewHolder(itemView.getRoot()) {
+        var bi: DataItemBinding
+
+        init {
+            bi = itemView
+        }
     }
 
-    inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+    inner class MyViewHolder(itemView: DataItemBinding) : RecyclerView.ViewHolder(itemView.root),
         com.polar.sdk.api.PolarBleApiCallbackProvider {
         private lateinit var task1: DataModel
+        var itemBinding: DataItemBinding
 
-        @SuppressLint("SetTextI18n")
+        init {
+            itemBinding = itemView
+        }
+
         fun bind(task: DataModel) {
             task1 = task
-            binding.tvIdVal.text = task.deviceId
-            binding.tvNameVal.text = task.patientName
+            itemBinding.tvIdVal.text = task.deviceId
+            itemBinding.tvNameVal.text = task.patientName
             lateinit var api: PolarBleApi
-            binding.btnConnect.setOnClickListener {
+            itemBinding.btnConnect.setOnClickListener {
                 task.deviceId?.let { it1 ->
                     try {
-                        if (TextUtils.equals("Connect", binding.btnConnect.text)) {
+                        if (TextUtils.equals("Connect", itemBinding.btnConnect.text)) {
                             api = PolarBleApiSingleton.getInstance(context).getPolarBleApi(
                                 this,
                                 it1
@@ -77,19 +98,29 @@ class MainAdepter(
 
                     } catch (a: PolarInvalidArgument) {
                         a.printStackTrace()
-                        binding.tvStatusVal.text = "Error"
+                        itemBinding.tvStatusVal.text = "Error"
                     }
                 }
             }
+            itemView.setOnClickListener { view ->
+                itemClick.onItemClick(view, dataList[layoutPosition], layoutPosition)
+            }
 
+            itemView.setOnLongClickListener { view ->
+                run {
+                    itemClick.onLongPress(view, dataList[layoutPosition], layoutPosition)
+                    true
+                }
+            }
 
+            toggleIcon(itemBinding, position)
         }
 
         override fun batteryLevelReceived(identifier: String, level: Int) {
             Log.d("MyApp", "BATTERY LEVEL: $level")
             Log.d("MyApp", "Battery level $identifier $level%")
             val batteryLevelText = "Battery level: $level%"
-            binding.tvBatteryVal.text = batteryLevelText
+            itemBinding.tvBatteryVal.text = batteryLevelText
         }
 
         override fun blePowerStateChanged(powered: Boolean) {
@@ -130,18 +161,18 @@ class MainAdepter(
 
         override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
             Log.d("MyApp", "CONNECTED: ${polarDeviceInfo.deviceId}")
-            binding.tvStatusVal.text = "Connected to ${polarDeviceInfo.deviceId}"
-            binding.btnConnect.text = "Disconnect"
+            itemBinding.tvStatusVal.text = "Connected"
+            itemBinding.btnConnect.text = "Disconnect"
         }
 
         override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
             Log.d("MyApp", "CONNECTING: ${polarDeviceInfo.deviceId}")
-            binding.tvStatusVal.text = "Connecting to  ${polarDeviceInfo.deviceId}"
+            itemBinding.tvStatusVal.text = "Connecting"
         }
 
         override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
             Log.d("MyApp", "DISCONNECTED: ${polarDeviceInfo.deviceId}")
-            binding.tvStatusVal.text = "Disconnected from ${polarDeviceInfo.deviceId}"
+            itemBinding.tvStatusVal.text = "Disconnected"
         }
 
         override fun disInformationReceived(identifier: String, uuid: UUID, value: String) {
@@ -149,7 +180,7 @@ class MainAdepter(
             if (uuid == UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb")) {
                 val msg = "Firmware: " + value.trim { it <= ' ' }
                 Log.d("MyApp", "Firmware: " + identifier + " " + value.trim { it <= ' ' })
-                binding.tvFamVal.text = value.trim { it <= ' ' }
+                itemBinding.tvFamVal.text = value.trim { it <= ' ' }
             }
         }
 
@@ -189,10 +220,20 @@ class MainAdepter(
                         for (sample in hrData.samples) {
                             Log.d("MyApp", "HR " + sample.hr)
                             if (sample.rrsMs.isNotEmpty()) {
-                                val rrText = "(${sample.rrsMs.joinToString(separator = "ms, ")}ms)"
-                                binding.tvHrVal.text = rrText
+                                rrText = "(${sample.rrsMs.joinToString(separator = "ms, ")}ms)"
+//                                binding.tvHrVal.text = rrText
                             }
                             binding.tvHrVal.text = sample.hr.toString()
+                            database.dao?.insert1(
+                                DataModelUpdateData(
+                                    id,
+                                    name,
+                                    binding.tvEcgVal.text.toString(),
+                                    sample.hr.toString(),
+                                    rrText,
+                                    ""
+                                )
+                            )
 
                         }
                     },
@@ -201,15 +242,7 @@ class MainAdepter(
                         hrDisposable = null
                     },
                     {
-                        database.dao?.insert1(
-                            DataModelUpdateData(
-                                id,
-                                name,
-                                binding.tvEcgVal.text.toString(),
-                                binding.tvHrVal.text.toString(),
-                                ""
-                            )
-                        )
+
                         Log.d("MyApp", "HR stream complete")
                     }
                 )
@@ -244,6 +277,7 @@ class MainAdepter(
                                     name,
                                     "${((data.voltage.toFloat() / 1000.0).toFloat())}",
                                     binding.tvHR.text.toString(),
+                                    rrText,
                                     timestampToDateTime(data.timeStamp)
                                 )
                             )
@@ -267,4 +301,53 @@ class MainAdepter(
             ecgDisposable = null
         }
     }
+
+
+    private fun toggleIcon(bi: DataItemBinding, position: Int) {
+        if (selectedItems[position, false]) {
+            bi.tvEnterOPDetails.setVisibility(View.VISIBLE)
+        } else {
+            bi.tvEnterOPDetails.setVisibility(View.GONE)
+        }
+        if (selectedIndex == position) selectedIndex = -1
+    }
+
+    fun getSelectedItems(): List<Int> {
+        val items: MutableList<Int> = ArrayList(selectedItems.size())
+        for (i in 0 until selectedItems.size()) {
+            items.add(selectedItems.keyAt(i))
+        }
+        return items
+    }
+
+
+    fun removeItems(position: Int) {
+        database.dao?.delete(dataList[position])
+        dataList.removeAt(position)
+
+        selectedIndex = -1
+
+    }
+
+
+    fun clearSelection() {
+        selectedItems.clear()
+        notifyDataSetChanged()
+    }
+
+
+    fun toggleSelection(position: Int) {
+        selectedIndex = position
+        if (selectedItems[position, false]) {
+            selectedItems.delete(position)
+        } else {
+            selectedItems.put(position, true)
+        }
+        notifyItemChanged(position)
+    }
+
+    fun selectedItemCount(): Int {
+        return selectedItems.size()
+    }
+
 }

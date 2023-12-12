@@ -1,6 +1,7 @@
 package com.example.proctocam.Database
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
@@ -10,7 +11,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [DataModel::class, DataModelUpdateData::class],
-    version = 1,
+    version = 2,
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2)
+    ],
     exportSchema = true,
 
     )

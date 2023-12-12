@@ -15,10 +15,12 @@ data class DataModelUpdateData(
     var patientName: String?,
     var ecg: String?,
     var hr: String?,
+    var rr : String?,
     var timestamp: String?,
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readLong(),
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
@@ -33,8 +35,9 @@ data class DataModelUpdateData(
         name: String,
         ecg: String,
         hr: String,
+        rr: String,
         timeStamp: String,
-    ) : this(0, deviceID, name, ecg, hr, timeStamp)
+    ) : this(0, deviceID, name, ecg, hr,rr, timeStamp)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(id)
@@ -42,6 +45,7 @@ data class DataModelUpdateData(
         parcel.writeString(patientName)
         parcel.writeString(ecg)
         parcel.writeString(hr)
+        parcel.writeString(rr)
         parcel.writeString(timestamp)
     }
 

@@ -4,22 +4,25 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.text.TextUtils
-import android.view.ActionMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.MenuProvider
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.polarecgdata.ActionCallback
+import com.example.polarecgdata.ActionCallbackclick
 import com.example.polarecgdata.HomeRepository
 import com.example.polarecgdata.HomeViewModel
+import com.example.polarecgdata.OnItemClick
 import com.example.polarecgdata.R
 import com.example.polarecgdata.adepters.MainAdepter
 import com.example.polarecgdata.databinding.CustomAlertDialogBinding
 import com.example.polarecgdata.databinding.FragmentHomeBinding
+import com.example.polarecgdata.toggleStatusBarColor
 import com.example.proctocam.Database.DataModel
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiDefaultImpl
@@ -31,6 +34,9 @@ class HomeFragment : Fragment() {
     private lateinit var viewModel: HomeViewModel
     private lateinit var adapter: MainAdepter
     private lateinit var api: PolarBleApi
+    private var actionMode: androidx.appcompat.view.ActionMode? = null
+    private var actionCallback: ActionCallback? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val factory = activity?.let { HomeRepository(it.applicationContext) }
@@ -63,6 +69,17 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRv()
         fabClick()
+        actionCallback = ActionCallback(requireActivity(), object : ActionCallbackclick {
+            override fun onActionItemClickedCallback() {
+                deleteInbox()
+            }
+
+            override fun onDestroyActionModeCallback() {
+                adapter.clearSelection()
+                actionMode = null
+                toggleStatusBarColor(requireActivity())
+            }
+        })
     }
 
 
@@ -132,11 +149,39 @@ class HomeFragment : Fragment() {
                         binding.rvPatientList.visibility = View.VISIBLE
                         binding.noDataLayout.visibility = View.GONE
                         adapter =
-                            MainAdepter(requireContext(), tasks.reversed(), api)
+                            MainAdepter(requireContext(), tasks.reversed().toMutableList(), api)
                         binding.rvPatientList.layoutManager = LinearLayoutManager(requireContext())
                         binding.rvPatientList.adapter = adapter
+                        adapter.setItemClick(object : OnItemClick {
+                            override fun onItemClick(
+                                view: View?,
+                                inbox: DataModel?,
+                                position: Int
+                            ) {
+                                if (adapter.selectedItemCount() > 0) {
+                                    toggleActionBar(position)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "clicked " + inbox?.patientName,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+
+                            }
+
+                            override fun onLongPress(
+                                view: View?,
+                                inbox: DataModel?,
+                                position: Int
+                            ) {
+                                toggleActionBar(position)
+                            }
+
+                        })
                     }
                 }
+
             }
         }
     }
@@ -146,6 +191,37 @@ class HomeFragment : Fragment() {
             return modelClass.getConstructor(HomeRepository::class.java).newInstance(repository)
         }
     }
+
+    private fun toggleActionBar(position: Int) {
+        if (actionMode == null) {
+            actionMode =
+                (requireActivity() as AppCompatActivity).startSupportActionMode(actionCallback!!)
+        }
+        toggleSelection(position)
+    }
+
+
+    private fun toggleSelection(position: Int) {
+        adapter.toggleSelection(position)
+        val count: Int = adapter.selectedItemCount()
+        if (count == 0) {
+            actionMode!!.finish()
+        } else {
+            actionMode!!.title = count.toString()
+            actionMode!!.invalidate()
+        }
+    }
+
+
+    private fun deleteInbox() {
+        val selectedItemPositions: List<Int> = adapter.getSelectedItems()
+        for (i in selectedItemPositions.indices.reversed()) {
+            adapter.removeItems(selectedItemPositions[i])
+        }
+        Toast.makeText(context, "${adapter.getSelectedItems().size} Devices Deleted", Toast.LENGTH_SHORT).show()
+        adapter.notifyDataSetChanged()
+    }
+
 
 }
 
