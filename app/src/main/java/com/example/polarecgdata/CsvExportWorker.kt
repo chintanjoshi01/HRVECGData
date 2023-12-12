@@ -56,7 +56,7 @@ class CsvExportWorker(
                 var offset = 0
                 var dataChunk: List<DataModelUpdateData>
                 do {
-                    Log.d("jfsljfjsd", "Device ID: " + deviceIddd)
+                    Log.d("jfsljfjsd", "Device ID: $deviceIddd")
                     dataChunk = dao!!.getDataWithDeviceId(deviceIddd, offset, batchSize)
                     dataChunk.forEach { entity ->
                         writer.appendLine("${entity.id},${entity.deviceId},${entity.patientName},${entity.hr},${entity.ecg},${entity.timestamp}")
@@ -69,9 +69,11 @@ class CsvExportWorker(
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d("jfsljfjsd", "Error: $deviceIddd")
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "Error exporting data", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 }
