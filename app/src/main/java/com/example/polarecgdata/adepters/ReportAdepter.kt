@@ -46,6 +46,7 @@ class ReportAdepter(
             binding.layout1.visibility = View.GONE
             binding.hrEcgLayout.visibility = View.GONE
             binding.hrBFLayout.visibility = View.GONE
+            binding.hrTimeLayout.visibility = View.GONE
             binding.btnConnect.text = "Generate CSV"
             binding.btnConnect.setOnClickListener {
                 CsvExportWorker.deviceIddd = task.deviceId.toString()

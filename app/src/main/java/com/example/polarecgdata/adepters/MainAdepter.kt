@@ -7,7 +7,6 @@ import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.polarecgdata.OnItemClick
 import com.example.polarecgdata.PolarBleApiSingleton
@@ -24,6 +23,8 @@ import com.polar.sdk.api.model.PolarHrData
 import com.polar.sdk.api.model.PolarSensorSetting
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
+import java.util.Calendar
+import java.util.TimeZone
 import java.util.UUID
 
 class MainAdepter(
@@ -32,12 +33,12 @@ class MainAdepter(
     private val api: PolarBleApi,
     private var selectedItems: SparseBooleanArray = SparseBooleanArray()
 ) : RecyclerView.Adapter<MainAdepter.MyViewHolder>() {
-
     private lateinit var binding: DataItemBinding
     private var ecgDisposable: Disposable? = null
     private var hrDisposable: Disposable? = null
+    private var deDisposable: Disposable? = null
     private lateinit var database: DatabaseHelper
-    lateinit var rrText: String;
+
     private var selectedIndex = -1
     private lateinit var itemClick: OnItemClick
 
@@ -92,6 +93,7 @@ class MainAdepter(
                                 this,
                                 it1
                             )
+
                         } else {
                             api.disconnectFromDevice(it1)
                         }
@@ -112,15 +114,13 @@ class MainAdepter(
                     true
                 }
             }
-
             toggleIcon(itemBinding, position)
         }
 
         override fun batteryLevelReceived(identifier: String, level: Int) {
             Log.d("MyApp", "BATTERY LEVEL: $level")
             Log.d("MyApp", "Battery level $identifier $level%")
-            val batteryLevelText = "Battery level: $level%"
-            itemBinding.tvBatteryVal.text = batteryLevelText
+            itemBinding.tvBatteryVal.text = "$level%"
         }
 
         override fun blePowerStateChanged(powered: Boolean) {
@@ -138,18 +138,21 @@ class MainAdepter(
                         task1.patientName?.let { it1 ->
                             streamHR(
                                 it,
-                                it1
+                                it1, itemBinding
                             )
                         }
                     }
-                    //                        binding.tvShowData1.text = "HR : $feature"
                 }
 
                 PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING -> {
                     Log.d("MyApp", "FEATURE_POLAR_ONLINE_STREAMING ready")
                     task1.deviceId?.let {
-                        task1.patientName?.let { it1 -> streamECG(it, it1) }
+                        task1.patientName?.let { it1 -> streamECG(it, it1, itemBinding) }
                     }
+
+                }
+
+                PolarBleApi.PolarBleSdkFeature.FEATURE_DEVICE_INFO -> {
 
                 }
 
@@ -181,6 +184,11 @@ class MainAdepter(
                 val msg = "Firmware: " + value.trim { it <= ' ' }
                 Log.d("MyApp", "Firmware: " + identifier + " " + value.trim { it <= ' ' })
                 itemBinding.tvFamVal.text = value.trim { it <= ' ' }
+                api.setLocalTime(identifier, Calendar.getInstance(TimeZone.getDefault()))
+                val calendar = api.getLocalTime(identifier)
+                calendar.blockingSubscribe {
+                    itemBinding.tvTimeVal.text = timestampToDateTime(it.timeInMillis)
+                }
             }
         }
 
@@ -206,12 +214,18 @@ class MainAdepter(
         ) {
 
         }
-
-
     }
 
-    fun streamHR(id: String, name: String) {
+    fun getDeviceInfo(identifier: String) {
+        val isDisposed = deDisposable?.isDisposed ?: true
+        if (isDisposed) {
+
+        }
+    }
+
+    fun streamHR(id: String, name: String, binding: DataItemBinding) {
         val isDisposed = hrDisposable?.isDisposed ?: true
+        lateinit var rrText: String;
         if (isDisposed) {
             hrDisposable = api.startHrStreaming(id)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -253,7 +267,7 @@ class MainAdepter(
         }
     }
 
-    fun streamECG(id: String, name: String) {
+    fun streamECG(id: String, name: String, binding: DataItemBinding) {
         val isDisposed = ecgDisposable?.isDisposed ?: true
         if (isDisposed) {
             ecgDisposable = api.requestStreamSettings(id, PolarBleApi.PolarDeviceDataType.ECG)
@@ -276,8 +290,8 @@ class MainAdepter(
                                     id,
                                     name,
                                     "${((data.voltage.toFloat() / 1000.0).toFloat())}",
-                                    binding.tvHR.text.toString(),
-                                    rrText,
+                                    binding.tvHrVal.text.toString(),
+                                    "",
                                     timestampToDateTime(data.timeStamp)
                                 )
                             )
@@ -290,8 +304,6 @@ class MainAdepter(
                         ecgDisposable = null
                     },
                     {
-
-
                         Log.d("MyApp", "Ecg stream complete")
                     }
                 )
