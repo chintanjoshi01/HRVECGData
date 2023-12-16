@@ -1,4 +1,4 @@
-package com.example.proctocam.Database
+package com.example.polarecgdata.database
 
 import android.content.Context
 import androidx.room.AutoMigration
@@ -11,9 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [DataModel::class, DataModelUpdateData::class],
-    version = 4,
+    version = 5,
     autoMigrations = [
-        AutoMigration(from = 3, to = 4)
+        AutoMigration(from = 4, to = 5)
     ],
     exportSchema = true,
 

@@ -1,4 +1,4 @@
-package com.example.proctocam.Database
+package com.example.polarecgdata.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.example.polarecgdata.utils.DataReportModel
 
 @Dao
 interface DaoAc {
@@ -28,6 +29,8 @@ interface DaoAc {
     @Query("SELECT * FROM DataTable ORDER BY id ASC")
     fun getAllPatient(): LiveData<List<DataModel>>
 
+   @Query("SELECT DISTINCT patientName as name , deviceId as id FROM DataTableUpdate")
+    fun getDistinctData(): LiveData<List<DataReportModel>>
 
     @Query("SELECT * FROM DataTable WHERE id LIKE :idd")
     fun getPatientbyId(idd: Long): DataModel
@@ -36,5 +39,5 @@ interface DaoAc {
     fun getDataWithDeviceId(deviceId: String,offset: Int, limit: Int): List<DataModelUpdateData>
 
     @RawQuery(observedEntities = [DataModel::class])
-    fun updateData(supportSQLiteQuery: SupportSQLiteQuery?): DataModel?
+    fun updateData(supportSQLiteQuery: SupportSQLiteQuery): DataModel?
 }

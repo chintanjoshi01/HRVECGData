@@ -5,9 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.example.polarecgdata.createAppDirectoryInDoc
-import com.example.proctocam.Database.DataModelUpdateData
-import com.example.proctocam.Database.DatabaseHelper
+import com.example.polarecgdata.database.DataModelUpdateData
+import com.example.polarecgdata.database.DatabaseHelper
+import com.example.polarecgdata.utils.createAppDirectoryInDoc
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -52,14 +52,15 @@ class CsvExportWorker(
 
         try {
             csvFile.bufferedWriter().use { writer ->
-                writer.appendLine("Id,Device ID,Name,HR ,RR, ECG, Time, Time2")
+                writer.appendLine("Id,Device ID,Name,HR ,RR, ECG, Time")
                 var offset = 0
                 var dataChunk: List<DataModelUpdateData>
                 do {
                     Log.d("jfsljfjsd", "Device ID: $deviceIddd")
                     dataChunk = dao!!.getDataWithDeviceId(deviceIddd, offset, batchSize)
                     dataChunk.forEach { entity ->
-                        writer.appendLine("${entity.id},${entity.deviceId},${entity.patientName},${entity.hr},${entity.rr},${entity.ecg},${entity.timestamp},${entity.timestamp2}")
+                        Log.d("jfsljfjsd", "timestamp2 :  ${entity.timestamp2}")
+                        writer.appendLine("${entity.id},${entity.deviceId},${entity.patientName},${entity.hr},${entity.rr},${entity.ecg},${entity.timestamp2}")
                     }
                     offset += batchSize
                 } while (dataChunk.isNotEmpty())

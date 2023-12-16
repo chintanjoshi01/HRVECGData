@@ -1,4 +1,4 @@
-package com.example.proctocam.Database
+package com.example.polarecgdata.database
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -15,7 +15,7 @@ data class DataModelUpdateData(
     var patientName: String?,
     var ecg: String?,
     var hr: String?,
-    var rr : String?,
+    var rr: String?,
     var timestamp: String?,
     var timestamp2: String?
 ) : Parcelable {
@@ -40,7 +40,7 @@ data class DataModelUpdateData(
         rr: String,
         timeStamp: String,
         timeStamp2: String,
-    ) : this(0, deviceID, name, ecg, hr,rr, timeStamp,timeStamp2)
+    ) : this(0, deviceID, name, ecg, hr, rr, timeStamp, timeStamp2)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(id)

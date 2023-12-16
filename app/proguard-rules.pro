@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-flattenpackagehierarchy
+-ignorewarnings
+-keep class androidx.fragment.app.FragmentContainerView { *; }
+-keep class com.example.polarecgdata.fragments.** { *; }
+-keepclassmembers class com.example.polarecgdata.viewmodel.HomeViewModel {
+    <init>(com.example.polarecgdata.repositorys.HomeRepository);
+}

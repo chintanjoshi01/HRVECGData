@@ -1,4 +1,4 @@
-package com.example.proctocam.Database
+package com.example.polarecgdata.database
 
 import android.os.Parcel
 import android.os.Parcelable

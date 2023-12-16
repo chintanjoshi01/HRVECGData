@@ -1,5 +1,6 @@
 package com.example.polarecgdata.adepters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
 import android.util.SparseBooleanArray
@@ -9,14 +10,18 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.polarecgdata.OnItemClick
+import com.example.polarecgdata.database.DataModel
+import com.example.polarecgdata.database.DatabaseHelper
 import com.example.polarecgdata.databinding.DataItemBinding
+import com.example.polarecgdata.utils.ID
+import com.example.polarecgdata.utils.NAME
+import com.example.polarecgdata.utils.OnItemClick
+import com.example.polarecgdata.utils.updateProcedureEmpty
 import com.example.polarecgdata.work.DeviceLiveUpdateWorker
-import com.example.proctocam.Database.DataModel
-import com.example.proctocam.Database.DatabaseHelper
+import com.example.polarecgdata.work.PolarBleApiSingleton
 import com.polar.sdk.api.PolarBleApi
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainAdepter(
@@ -28,7 +33,8 @@ class MainAdepter(
     private lateinit var database: DatabaseHelper
     private var selectedIndex = -1
     private lateinit var itemClick: OnItemClick
-     var dataList: MutableList<DataModel> = mutableListOf()
+
+    var dataList: MutableList<DataModel> = mutableListOf()
     fun setItemClick(itemClick: OnItemClick) {
         this.itemClick = itemClick
     }
@@ -54,13 +60,13 @@ class MainAdepter(
         notifyItemChanged(position)
     }
 
-    fun updateItemAtPosition1(newItem:  MutableList<DataModel>) {
+    fun updateItemAtPosition1(newItem: MutableList<DataModel>) {
         dataList = newItem
         notifyDataSetChanged()
     }
 
 
-    inner class MyViewHolder(itemView: DataItemBinding) : RecyclerView.ViewHolder(itemView.root)  {
+    inner class MyViewHolder(itemView: DataItemBinding) : RecyclerView.ViewHolder(itemView.root) {
         private lateinit var task1: DataModel
         private var itemBinding: DataItemBinding
 
@@ -68,6 +74,8 @@ class MainAdepter(
             itemBinding = itemView
         }
 
+
+        @SuppressLint("SetTextI18n")
         fun bind(task: DataModel) {
             task1 = task
             itemBinding.tvIdVal.text = task.deviceId
@@ -78,19 +86,26 @@ class MainAdepter(
             itemBinding.tvHrVal.text = task.hr
             itemBinding.tvStatusVal.text = task.status
 
+            NAME =  itemBinding.tvNameVal.text.toString()
+            ID =  itemBinding.tvIdVal.text.toString()
+            if (TextUtils.equals("Connected", task.status)) {
+                itemBinding.btnConnect.text = "Disconnect"
+            }
             itemBinding.btnConnect.setOnClickListener {
                 if (TextUtils.equals("Connect", itemBinding.btnConnect.text)) {
-                  /*  val workManager = WorkManager.getInstance(context)
+                    val workManager = WorkManager.getInstance(context)
                     val data = Data.Builder()
                         .putLong("FIRST_KEY", task.id)
                         .build()
-                    val pdfGenerationRequest = OneTimeWorkRequest.Builder(DeviceLiveUpdateWorker::class.java)
-                        .setInputData(data)
-                        .build()
-                    workManager.enqueue(pdfGenerationRequest)*/
-                    itemClick.onItemClick(it, dataList[layoutPosition], layoutPosition)
-                } else {
-//                        PolarBleApiSingleton.getInstance(context, task, itemBinding, this@MainAdepter,layoutPosition).disconnect()
+                    val pdfGenerationRequest =
+                        OneTimeWorkRequest.Builder(DeviceLiveUpdateWorker::class.java)
+                            .setInputData(data)
+                            .build()
+                    workManager.enqueue(pdfGenerationRequest)
+                } else if (TextUtils.equals("Disconnect", itemBinding.btnConnect.text)) {
+                    itemBinding.btnConnect.text = "Connect"
+                    task.deviceId?.let { it1 -> api.disconnectFromDevice(it1) }
+                    updateProcedureEmpty(task.deviceId.toString(),database)
                 }
             }
             itemView.setOnClickListener { view ->
@@ -125,7 +140,6 @@ class MainAdepter(
         return items
     }
 
-
     fun removeItems(position: Int) {
         val executor = Executors.newSingleThreadExecutor()
         executor.execute {
@@ -136,7 +150,6 @@ class MainAdepter(
         }
 
     }
-
 
     fun clearSelection() {
         selectedItems.clear()

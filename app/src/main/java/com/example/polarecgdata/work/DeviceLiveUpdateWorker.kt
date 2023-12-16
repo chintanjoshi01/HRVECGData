@@ -2,16 +2,24 @@ package com.example.polarecgdata.work
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.example.polarecgdata.getCurrentLocalDateTimeWithMillis
-import com.example.polarecgdata.timestampToDateTime
-import com.example.proctocam.Database.DataModel
-import com.example.proctocam.Database.DataModelUpdateData
-import com.example.proctocam.Database.DatabaseHelper
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
+import com.example.polarecgdata.utils.getCurrentLocalDateTimeWithMillis
+import com.example.polarecgdata.utils.timestampToDateTime
+import com.example.polarecgdata.database.DataModel
+import com.example.polarecgdata.database.DataModelUpdateData
+import com.example.polarecgdata.database.DatabaseHelper
+import com.example.polarecgdata.utils.ACTION_UPDATE_DATA
+import com.example.polarecgdata.utils.BL_DATA_KEY
+import com.example.polarecgdata.utils.ECG_DATA_KEY
+import com.example.polarecgdata.utils.FR_DATA_KEY
+import com.example.polarecgdata.utils.HR_DATA_KEY
+import com.example.polarecgdata.utils.STATUS_DATA_KEY
+import com.example.polarecgdata.utils.UpdateDataEvent
+
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiDefaultImpl
 import com.polar.sdk.api.model.PolarDeviceInfo
@@ -21,6 +29,7 @@ import com.polar.sdk.api.model.PolarSensorSetting
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import org.greenrobot.eventbus.EventBus
 import java.io.IOException
 import java.util.Calendar
 import java.util.TimeZone
@@ -32,14 +41,14 @@ class DeviceLiveUpdateWorker(
     workerParams: WorkerParameters,
 ) : Worker(context, workerParams) {
 
-
     private var ecgDisposable: Disposable? = null
     private var hrDisposable: Disposable? = null
     private var deDisposable: Disposable? = null
     private var database = DatabaseHelper.getInstance(context)
     private lateinit var dataModel1: DataModel
     private lateinit var id: String
-
+    private val intent =  Intent(ACTION_UPDATE_DATA)
+    private val local =    LocalBroadcastManager.getInstance(applicationContext)
     private val polarBleApi: PolarBleApi = PolarBleApiDefaultImpl.defaultImplementation(
         context.applicationContext,
         setOf(
@@ -73,12 +82,13 @@ class DeviceLiveUpdateWorker(
                 Log.d("MyApp", "BATTERY LEVEL: $id --- $level")
                 Log.d("MyApp", "Battery level $id --- $identifier $level%")
                 dataModel1.battery = "$level%"
+                intent.putExtra(BL_DATA_KEY, "$level%")
+                local.sendBroadcast(intent)
                 val executor = Executors.newSingleThreadExecutor()
                 executor.execute {
                     database?.dao?.update(dataModel1)
                     executor.shutdown()
                 }
-
             }
 
             override fun blePowerStateChanged(powered: Boolean) {
@@ -102,13 +112,11 @@ class DeviceLiveUpdateWorker(
                             }
                         }
                     }
-
                     PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING -> {
                         Log.d("MyApp", "FEATURE_POLAR_ONLINE_STREAMING ready")
                         dataModel1.deviceId?.let {
                             dataModel1.patientName?.let { it1 -> streamECG(it, it1) }
                         }
-
                     }
 
                     PolarBleApi.PolarBleSdkFeature.FEATURE_DEVICE_INFO -> {
@@ -127,6 +135,8 @@ class DeviceLiveUpdateWorker(
                 Log.d("hdhshkdk", "rssi:-- ${polarDeviceInfo.rssi}")
                 Log.d("hdhshkdk", "name:  -- ${polarDeviceInfo.name}")
                 dataModel1.status = "Connected"
+                intent.putExtra(STATUS_DATA_KEY, "Connected")
+                local.sendBroadcast(intent)
                 val executor = Executors.newSingleThreadExecutor()
                 executor.execute {
                     database?.dao?.update(dataModel1)
@@ -137,6 +147,8 @@ class DeviceLiveUpdateWorker(
             override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("MyApp", "CONNECTING: $id --  ${polarDeviceInfo.deviceId}")
                 dataModel1.status = "Connecting"
+                intent.putExtra(STATUS_DATA_KEY, "Connecting")
+                local.sendBroadcast(intent)
                 val executor = Executors.newSingleThreadExecutor()
                 executor.execute {
                     database?.dao?.update(dataModel1)
@@ -147,6 +159,8 @@ class DeviceLiveUpdateWorker(
             override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("MyApp", "DISCONNECTED: $id --  ${polarDeviceInfo.deviceId}")
                 dataModel1.status = "Disconnected"
+                intent.putExtra(STATUS_DATA_KEY, "Disconnected")
+                local.sendBroadcast(intent)
                 val executor = Executors.newSingleThreadExecutor()
                 executor.execute {
                     database?.dao?.update(dataModel1)
@@ -161,6 +175,8 @@ class DeviceLiveUpdateWorker(
                     val msg = "Firmware: " + value.trim { it <= ' ' }
                     Log.d("MyApp", "Firmware: " + identifier + " " + value.trim { it <= ' ' })
                     dataModel1.firmware = value.trim { it <= ' ' }
+                    intent.putExtra(FR_DATA_KEY, value.trim { it <= ' ' })
+                    local.sendBroadcast(intent)
                     val executor = Executors.newSingleThreadExecutor()
                     executor.execute {
                         database?.dao?.update(dataModel1)
@@ -239,11 +255,11 @@ class DeviceLiveUpdateWorker(
                         for (sample in hrData.samples) {
                             Log.d("MyApp", "HR " + sample.hr)
                             if (sample.rrsMs.isNotEmpty()) {
-                                rrText = "(${sample.rrsMs.joinToString(separator = "ms, ")}ms)"
-//                                binding.tvHrVal.text = rrText
+                                rrText = "(${sample.rrsMs} ms"
                             }
-//                            binding.tvHrVal.text = sample.hr.toString()
                             dataModel1.hr = sample.hr.toString()
+                            intent.putExtra(HR_DATA_KEY, sample.hr.toString())
+                            local.sendBroadcast(intent)
                             val executor = Executors.newSingleThreadExecutor()
                             executor.execute {
                                 database?.dao?.update(dataModel1)
@@ -297,6 +313,8 @@ class DeviceLiveUpdateWorker(
                             Log.d("MyApp", "ecg update")
                             for (data in polarEcgData.samples) {
                                 dataModel1.ecg = "${((data.voltage.toFloat() / 1000.0).toFloat())}"
+                                intent.putExtra(ECG_DATA_KEY,  "${((data.voltage.toFloat() / 1000.0).toFloat())}")
+                                local.sendBroadcast(intent)
                                 val executor = Executors.newSingleThreadExecutor()
                                 executor.execute {
                                     database?.dao?.update(dataModel1)
