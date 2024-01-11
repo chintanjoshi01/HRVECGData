@@ -255,7 +255,7 @@ class DeviceLiveUpdateWorker(
                         for (sample in hrData.samples) {
                             Log.d("MyApp", "HR " + sample.hr)
                             if (sample.rrsMs.isNotEmpty()) {
-                                rrText = "(${sample.rrsMs} ms"
+                                rrText = "(${sample.rrsMs.joinToString(separator = "ms : ")}ms)"
                             }
                             dataModel1.hr = sample.hr.toString()
                             intent.putExtra(HR_DATA_KEY, sample.hr.toString())
@@ -267,7 +267,7 @@ class DeviceLiveUpdateWorker(
                                     DataModelUpdateData(
                                         id,
                                         name,
-                                        sample.hr.toString(),
+                                        "",
                                         sample.hr.toString(),
                                         rrText,
                                         "",

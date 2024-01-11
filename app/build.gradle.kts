@@ -16,8 +16,8 @@ android {
         applicationId = "com.example.polarecgdata"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.1.1"
+        versionCode = 11
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -56,7 +56,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
-
+        buildConfig = true
     }
 }
 
@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -103,4 +104,6 @@ dependencies {
 
     implementation("org.greenrobot:eventbus:3.3.0")
 
+
+    implementation("com.jakewharton.timber:timber:4.7.1")
 }

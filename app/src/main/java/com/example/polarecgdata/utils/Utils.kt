@@ -3,6 +3,7 @@ package com.example.polarecgdata.utils
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Environment
 import android.view.View
 import android.view.WindowManager
@@ -10,6 +11,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.polarecgdata.R
 import com.example.polarecgdata.database.DataModel
 import com.example.polarecgdata.database.DatabaseHelper
+import com.example.polarecgdata.BuildConfig
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -32,6 +34,25 @@ var ID: String = ""
  lateinit  var dataModel :DataModel
 
 class UpdateDataEvent(val newData: DataModel)
+
+data class RemoteLog(
+    var priority: String,
+    var tag: String?,
+    var message: String,
+    var throwable: String?,
+    val time : String
+)
+
+data class DeviceDetails(
+    val deviceId: String,
+    val osVersion: String = Build.VERSION.RELEASE,
+    val manufacturer: String = Build.MANUFACTURER,
+    val brand: String = Build.BRAND,
+    val device: String = Build.DEVICE,
+    val model: String = Build.MODEL,
+    val appVersionName: String = BuildConfig.VERSION_NAME,
+    val appVersionCode: Int = BuildConfig.VERSION_CODE
+)
 
 fun timestampToDateTime(millis: Long): String {
     val hours = millis / (1000 * 60 * 60) % 24

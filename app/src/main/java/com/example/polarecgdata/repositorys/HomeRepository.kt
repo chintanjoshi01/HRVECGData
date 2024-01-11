@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import com.example.polarecgdata.database.DataModel
 import com.example.polarecgdata.database.DatabaseHelper
 import com.example.polarecgdata.utils.DataReportModel
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
@@ -14,11 +15,11 @@ class HomeRepository(context: Context) {
 
     val allTasks: LiveData<List<DataModel>> = dao?.getAllPatient()!!
     val allReportTasks: LiveData<List<DataReportModel>> = dao?.getDistinctData()!!
-//    fun getDataWithId(id : String): LiveData<List<DataModel>> = dao?.getDataWithDeviceId()!!
-val executor = Executors.newSingleThreadExecutor()
+
+    //    fun getDataWithId(id : String): LiveData<List<DataModel>> = dao?.getDataWithDeviceId()!!
+    private val executor: ExecutorService = Executors.newFixedThreadPool(10)
 
     fun insert(task: DataModel) {
-
         executor.execute {
             dao?.insert(task)
             executor.shutdown()
@@ -31,7 +32,7 @@ val executor = Executors.newSingleThreadExecutor()
     }
 
     fun delete(task: DataModel) {
-        executor.execute{
+        executor.execute {
             dao?.delete(task)
             executor.shutdown()
         }

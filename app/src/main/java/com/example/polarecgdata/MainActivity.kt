@@ -43,8 +43,6 @@ class MainActivity : AppCompatActivity() {
         initBottomNavBar()
         sharedPreferencesUtils = SharedPreferencesUtils(this)
         reqPermission()
-
-
     }
 
     fun initBottomNavBar() {
