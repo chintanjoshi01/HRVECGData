@@ -1,8 +1,10 @@
 package com.example.polarecgdata.fragments
 
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.Context
 import android.os.Bundle
+import android.provider.Settings
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -21,9 +23,11 @@ import com.example.polarecgdata.databinding.FragmentHomeBinding
 import com.example.polarecgdata.repositorys.HomeRepository
 import com.example.polarecgdata.utils.ActionCallback
 import com.example.polarecgdata.utils.ActionCallbackclick
+import com.example.polarecgdata.utils.DeviceDetails
 import com.example.polarecgdata.utils.ID
 import com.example.polarecgdata.utils.NAME
 import com.example.polarecgdata.utils.OnItemClick
+import com.example.polarecgdata.utils.TimberRemoteTree
 import com.example.polarecgdata.utils.dataModel
 import com.example.polarecgdata.utils.toggleStatusBarColor
 import com.example.polarecgdata.utils.updateProcedureEmpty
@@ -32,6 +36,7 @@ import com.example.polarecgdata.viewmodel.MyViewModelFactory
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiDefaultImpl
 import io.reactivex.rxjava3.disposables.Disposable
+import timber.log.Timber
 import java.util.concurrent.Executors
 
 
@@ -48,6 +53,7 @@ class HomeFragment : Fragment() {
     private var deDisposable: Disposable? = null
     private lateinit var database: DatabaseHelper
     private lateinit var dataList: List<DataModel>
+//    private val contentResolver: ContentResolver = requireContext().contentResolver
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val factory = activity?.let { HomeRepository(it.applicationContext) }
@@ -168,6 +174,11 @@ class HomeFragment : Fragment() {
     private fun fabClick() {
         binding.extendedFab.setOnClickListener {
             context?.let { it1 ->
+                val deviceId = Settings.Secure.getString(requireContext().contentResolver, Settings.Secure.ANDROID_ID)
+                val deviceDetails = DeviceDetails(deviceId)
+                val remoteTree = TimberRemoteTree(deviceDetails)
+                remoteTree.log(1,"Hello")
+                Timber.plant(remoteTree)
                 showAddDialog(it1)
             }
         }
