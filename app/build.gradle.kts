@@ -16,8 +16,8 @@ android {
         applicationId = "com.example.polarecgdata"
         minSdk = 26
         targetSdk = 34
-        versionCode = 11
-        versionName = "1.1.2"
+        versionCode = 12
+        versionName = "1.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -106,4 +106,7 @@ dependencies {
 
 
     implementation("com.jakewharton.timber:timber:4.7.1")
+
+    //For Permission Utils
+    implementation(libs.dexter)
 }

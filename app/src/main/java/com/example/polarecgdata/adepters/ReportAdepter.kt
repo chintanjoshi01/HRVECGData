@@ -26,6 +26,8 @@ class ReportAdepter(
     private var selectedIndex = -1
     private lateinit var itemClick: OnItemClick
 
+
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReportAdepter.MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         binding = DataItemBinding.inflate(inflater, parent, false)

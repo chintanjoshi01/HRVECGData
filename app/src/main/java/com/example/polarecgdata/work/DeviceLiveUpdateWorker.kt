@@ -7,8 +7,6 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.example.polarecgdata.utils.getCurrentLocalDateTimeWithMillis
-import com.example.polarecgdata.utils.timestampToDateTime
 import com.example.polarecgdata.database.DataModel
 import com.example.polarecgdata.database.DataModelUpdateData
 import com.example.polarecgdata.database.DatabaseHelper
@@ -18,8 +16,9 @@ import com.example.polarecgdata.utils.ECG_DATA_KEY
 import com.example.polarecgdata.utils.FR_DATA_KEY
 import com.example.polarecgdata.utils.HR_DATA_KEY
 import com.example.polarecgdata.utils.STATUS_DATA_KEY
-import com.example.polarecgdata.utils.UpdateDataEvent
-
+import com.example.polarecgdata.utils.getCurrentLocalDateTimeWithMillis
+import com.example.polarecgdata.utils.remoteTree
+import com.example.polarecgdata.utils.timestampToDateTime
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiDefaultImpl
 import com.polar.sdk.api.model.PolarDeviceInfo
@@ -29,7 +28,7 @@ import com.polar.sdk.api.model.PolarSensorSetting
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import org.greenrobot.eventbus.EventBus
+import timber.log.Timber
 import java.io.IOException
 import java.util.Calendar
 import java.util.TimeZone
@@ -47,8 +46,8 @@ class DeviceLiveUpdateWorker(
     private var database = DatabaseHelper.getInstance(context)
     private lateinit var dataModel1: DataModel
     private lateinit var id: String
-    private val intent =  Intent(ACTION_UPDATE_DATA)
-    private val local =    LocalBroadcastManager.getInstance(applicationContext)
+    private val intent = Intent(ACTION_UPDATE_DATA)
+    private val local = LocalBroadcastManager.getInstance(applicationContext)
     private val polarBleApi: PolarBleApi = PolarBleApiDefaultImpl.defaultImplementation(
         context.applicationContext,
         setOf(
@@ -68,6 +67,11 @@ class DeviceLiveUpdateWorker(
             connect()
             Result.success()
         } catch (e: IOException) {
+            remoteTree.log(
+                1,
+                "DeviceLiveUpdateWorker IOException --->> \n ${e.message} stackTrace --> \n ${e.printStackTrace()}"
+            )
+            Timber.plant(remoteTree)
             Result.failure()
         }
     }
@@ -112,6 +116,7 @@ class DeviceLiveUpdateWorker(
                             }
                         }
                     }
+
                     PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING -> {
                         Log.d("MyApp", "FEATURE_POLAR_ONLINE_STREAMING ready")
                         dataModel1.deviceId?.let {
@@ -248,7 +253,7 @@ class DeviceLiveUpdateWorker(
         var rrText: String = ""
         if (isDisposed) {
             hrDisposable = polarBleApi.startHrStreaming(id)
-                    .observeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                     { hrData: PolarHrData ->
@@ -313,7 +318,10 @@ class DeviceLiveUpdateWorker(
                             Log.d("MyApp", "ecg update")
                             for (data in polarEcgData.samples) {
                                 dataModel1.ecg = "${((data.voltage.toFloat() / 1000.0).toFloat())}"
-                                intent.putExtra(ECG_DATA_KEY,  "${((data.voltage.toFloat() / 1000.0).toFloat())}")
+                                intent.putExtra(
+                                    ECG_DATA_KEY,
+                                    "${((data.voltage.toFloat() / 1000.0).toFloat())}"
+                                )
                                 local.sendBroadcast(intent)
                                 val executor = Executors.newSingleThreadExecutor()
                                 executor.execute {

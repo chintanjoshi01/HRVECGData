@@ -32,6 +32,7 @@ class HomeRepository(context: Context) {
     }
 
     fun delete(task: DataModel) {
+        val executor: ExecutorService = Executors.newSingleThreadExecutor()
         executor.execute {
             dao?.delete(task)
             executor.shutdown()

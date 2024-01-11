@@ -1,5 +1,5 @@
 [versions]
-agp = "8.4.0-alpha03"
+agp = "8.4.0-alpha04"
 kotlin = "1.9.0"
 coreKtx = "1.10.1"
 junit = "4.13.2"
@@ -14,10 +14,10 @@ navigation-ui-ktx = "2.7.4"
 googleServices = "4.4.0"
 firebaseAnalytics = "21.5.0"
 firebaseCrashlytics = "18.6.0"
-gradle = "8.4.0-alpha03"
+gradle = "8.4.0-alpha04"
 firebaseCrashlyticsGradle = "2.9.9"
 firebaseDatabase = "20.3.0"
-
+dexter = "6.2.3"
 
 
 [libraries]
@@ -37,7 +37,7 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
 firebase-crashlytics-gradle = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
-
+dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

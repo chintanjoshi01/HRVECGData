@@ -1,16 +1,22 @@
 package com.example.polarecgdata.work
 
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.polarecgdata.database.DataModelUpdateData
 import com.example.polarecgdata.database.DatabaseHelper
+import com.example.polarecgdata.utils.DeviceDetails
+import com.example.polarecgdata.utils.TimberRemoteTree
 import com.example.polarecgdata.utils.createAppDirectoryInDoc
+import com.example.polarecgdata.utils.remoteTree
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 // CsvExportWorker.kt
@@ -32,10 +38,11 @@ class CsvExportWorker(
                     exportDataToCsv(applicationContext, database)
                 }
             }
-
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
+            remoteTree.log(1,"CsvExportWorker doWork Exception --->> \n ${e.message} stackTrace --> \n ${e.printStackTrace()}")
+            Timber.plant(remoteTree)
             Result.failure()
         }
     }
@@ -46,10 +53,8 @@ class CsvExportWorker(
         batchSize: Int = 1000
     ) {
         val dao = database.dao
-
         val csvFileName = "${deviceIddd}_exported_data_${System.currentTimeMillis()}.csv"
         val csvFile = File(createAppDirectoryInDoc(context), csvFileName)
-
         try {
             csvFile.bufferedWriter().use { writer ->
                 writer.appendLine("Id,Device ID,Name,HR ,RR, ECG, Time")
@@ -72,6 +77,8 @@ class CsvExportWorker(
             e.printStackTrace()
             Log.d("jfsljfjsd", "Error: $deviceIddd")
             withContext(Dispatchers.Main) {
+                remoteTree.log(1,"CsvExportWorker Exception --->> \n ${e.message} stackTrace --> \n ${e.printStackTrace()}")
+                Timber.plant(remoteTree)
                 Toast.makeText(context, "Error exporting data", Toast.LENGTH_SHORT).show()
             }
         }

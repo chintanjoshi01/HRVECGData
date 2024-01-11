@@ -28,6 +28,7 @@ import com.example.polarecgdata.utils.ID
 import com.example.polarecgdata.utils.NAME
 import com.example.polarecgdata.utils.OnItemClick
 import com.example.polarecgdata.utils.TimberRemoteTree
+import com.example.polarecgdata.utils.createAppDirectoryInDoc
 import com.example.polarecgdata.utils.dataModel
 import com.example.polarecgdata.utils.toggleStatusBarColor
 import com.example.polarecgdata.utils.updateProcedureEmpty
@@ -174,11 +175,7 @@ class HomeFragment : Fragment() {
     private fun fabClick() {
         binding.extendedFab.setOnClickListener {
             context?.let { it1 ->
-                val deviceId = Settings.Secure.getString(requireContext().contentResolver, Settings.Secure.ANDROID_ID)
-                val deviceDetails = DeviceDetails(deviceId)
-                val remoteTree = TimberRemoteTree(deviceDetails)
-                remoteTree.log(1,"Hello")
-                Timber.plant(remoteTree)
+                createAppDirectoryInDoc(it1)
                 showAddDialog(it1)
             }
         }

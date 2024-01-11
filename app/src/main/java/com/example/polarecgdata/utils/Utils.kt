@@ -8,10 +8,11 @@ import android.os.Environment
 import android.view.View
 import android.view.WindowManager
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.example.polarecgdata.BuildConfig
 import com.example.polarecgdata.R
 import com.example.polarecgdata.database.DataModel
 import com.example.polarecgdata.database.DatabaseHelper
-import com.example.polarecgdata.BuildConfig
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -31,7 +32,11 @@ const val FR_DATA_KEY = "fr_data_key"
 var NAME: String = ""
 var ID: String = ""
 
- lateinit  var dataModel :DataModel
+lateinit var dataModel: DataModel
+
+lateinit var devicePhoneId: String
+
+lateinit var remoteTree: TimberRemoteTree
 
 class UpdateDataEvent(val newData: DataModel)
 
@@ -40,8 +45,9 @@ data class RemoteLog(
     var tag: String?,
     var message: String,
     var throwable: String?,
-    val time : String
+    val time: String
 )
+
 
 data class DeviceDetails(
     val deviceId: String,
@@ -85,12 +91,39 @@ fun createAppDirectoryInDoc(context: Context): File? {
     if (!appDirectory.exists()) {
         val directoryCreated = appDirectory.mkdir()
         if (!directoryCreated) {
-            // Failed to create the directory
-            return null
+            val mediaStorageDir = File(Environment.getExternalStorageDirectory(), "Documents")
+            if (!mediaStorageDir.exists()) {
+                mediaStorageDir.mkdir()
+                if (!mediaStorageDir.mkdirs()) {
+                    remoteTree.log(1, "Directory not created")
+                    Timber.plant(remoteTree)
+                }
+            }
+            val appDir = File(mediaStorageDir, context.resources.getString(R.string.app_name))
+            if (!appDir.exists()) {
+                appDir.mkdir()
+                if (!mediaStorageDir.mkdirs()) {
+                    val appdir2 = context.getExternalFilesDir(null)!!
+                    val documentsDirectory = File(appdir2, "Documents")
+                    if (!documentsDirectory.exists()) {
+                        documentsDirectory.mkdirs()
+                    }
+                    val appDirectory2 = File(documentsDirectory, context.resources.getString(R.string.app_name))
+                    if (!appDirectory2.exists()) {
+                        appDirectory2.mkdirs()
+                    }
+                    remoteTree.log(1, "Directory not created 2")
+                    Timber.plant(remoteTree)
+                    return appDirectory2
+
+                }
+            }
+            return appDir
         }
     }
     return appDirectory
 }
+
 
 @SuppressLint("ResourceType")
 fun toggleStatusBarColor(activity: Activity) {

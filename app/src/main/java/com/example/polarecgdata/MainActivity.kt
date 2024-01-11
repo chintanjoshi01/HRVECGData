@@ -9,23 +9,26 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.polarecgdata.database.DataModel
-import com.example.polarecgdata.databinding.ActivityMainBinding
 import com.example.polarecgdata.database.DatabaseHelper
+import com.example.polarecgdata.databinding.ActivityMainBinding
 import com.example.polarecgdata.utils.ID
 import com.example.polarecgdata.utils.NAME
 import com.example.polarecgdata.utils.SharedPreferencesUtils
-import com.polar.sdk.api.PolarBleApi
-import com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation
-import io.reactivex.rxjava3.disposables.Disposable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.provider.Settings
+import com.example.polarecgdata.utils.DeviceDetails
+import com.example.polarecgdata.utils.TimberRemoteTree
+import com.example.polarecgdata.utils.devicePhoneId
+import com.example.polarecgdata.utils.remoteTree
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val PERMISSION_REQUEST_CODE: Int = 101
+    private val STORAGE_PERMISSION_CODE = 1
     private lateinit var sharedPreferencesUtils: SharedPreferencesUtils
-    private lateinit var databaseHelper : DatabaseHelper
+    private lateinit var databaseHelper: DatabaseHelper
     val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
 
@@ -39,6 +42,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        devicePhoneId = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
+         val deviceDetails = DeviceDetails(devicePhoneId)
+        remoteTree =  TimberRemoteTree(deviceDetails)
         databaseHelper = DatabaseHelper.getInstance(this)!!
         initBottomNavBar()
         sharedPreferencesUtils = SharedPreferencesUtils(this)
@@ -53,11 +59,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun reqPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 requestPermissions(
                     arrayOf(
                         android.Manifest.permission.BLUETOOTH_SCAN,
                         android.Manifest.permission.BLUETOOTH_CONNECT
+                    ), PERMISSION_REQUEST_CODE
+                )
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2) {
+                requestPermissions(
+                    arrayOf(
+                        android.Manifest.permission.BLUETOOTH_SCAN,
+                        android.Manifest.permission.BLUETOOTH_CONNECT,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE
                     ), PERMISSION_REQUEST_CODE
                 )
             } else {
@@ -68,7 +83,11 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             requestPermissions(
-                arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION),
+                arrayOf(
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
                 PERMISSION_REQUEST_CODE
             )
         }
@@ -86,7 +105,6 @@ class MainActivity : AppCompatActivity() {
             executor.shutdown()
         }
     }
-
 
 
 }
