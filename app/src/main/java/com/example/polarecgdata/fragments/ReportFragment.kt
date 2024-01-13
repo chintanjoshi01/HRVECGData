@@ -41,7 +41,7 @@ class ReportFragment : Fragment() {
 
 
     private fun initRv() {
-        adapter = context?.let { it1 -> ReportAdepter(it1) }!!
+        adapter = ReportAdepter(requireActivity())
         binding.rvPatientList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPatientList.adapter = adapter
         val factory = activity?.let { HomeRepository(it.applicationContext) }

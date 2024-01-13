@@ -26,3 +26,7 @@
 -keepclassmembers class com.example.polarecgdata.viewmodel.HomeViewModel {
     <init>(com.example.polarecgdata.repositorys.HomeRepository);
 }
+-keep class com.example.polarecgdata.utils.RemoteLog { *; }
+-keepclassmembers class com.example.polarecgdata.utils.RemoteLog { *; }
+-keepnames class com.example.polarecgdata.utils.RemoteLog { *; }
+-keepclassmembernames class com.example.polarecgdata.utils.RemoteLog { *; }

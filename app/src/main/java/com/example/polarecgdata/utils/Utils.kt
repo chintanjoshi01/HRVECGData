@@ -112,8 +112,6 @@ fun createAppDirectoryInDoc(context: Context): File? {
                     if (!appDirectory2.exists()) {
                         appDirectory2.mkdirs()
                     }
-                    remoteTree.log(1, "Directory not created 2")
-                    Timber.plant(remoteTree)
                     return appDirectory2
 
                 }

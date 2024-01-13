@@ -16,8 +16,8 @@ android {
         applicationId = "com.example.polarecgdata"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.1.3"
+        versionCode = 14
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
